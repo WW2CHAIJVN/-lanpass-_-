@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=8">
+<title>机房共享</title>
+<hta:application
+  id="app"
+  applicationname="LANShare"
+  border="thick"
+  caption="yes"
+  maximizebutton="no"
+  minimizebutton="yes"
+  scroll="auto"
+  singleinstance="no"
+  sysmenu="yes"
+  windowstate="normal"
+/>
+<style>
+body { font-family:"Microsoft YaHei","Microsoft YaHei",SimSun,sans-serif; font-size:12px; margin:0; background:#eef1f5; }
+#hdr { background:#2c5aa0; color:#fff; padding:8px 10px; }
+#roleTag { display:inline-block; padding:2px 8px; font-weight:bold; border:1px solid #fff; }
+#hdrInfo { margin-left:10px; color:#dbe7f7; }
+#toolbar { background:#fff; border-bottom:1px solid #c8d0da; padding:7px 8px; }
+button { font-family:"Microsoft YaHei",SimSun,sans-serif; font-size:12px; height:26px; min-width:88px;
+         margin-right:5px; cursor:pointer; border:1px solid #9aa8b8; background:#f7f9fc; }
+button:hover { background:#e6eef8; }
+button.main { background:#2c5aa0; color:#fff; border:1px solid #1e4079; font-weight:bold; }
+button.main:hover { background:#3a6bbd; }
+#status { padding:5px 10px; background:#fffbe6; border-bottom:1px solid #e0d9b8; color:#5a4a10; }
+.section { margin:8px; padding:9px; background:#fff; border:1px solid #c8d0da; }
+.section h3 { margin:0 0 7px 0; font-size:13px; color:#2c5aa0; border-bottom:1px solid #dbe3ec; padding-bottom:5px; }
+.list { display:table; width:100%; border-collapse:collapse; }
+.prow { display:table-row; }
+.pcell { display:table-cell; border:1px solid #dde4ec; padding:4px 6px; vertical-align:middle; }
+.phead .pcell { background:#e8eef6; font-weight:bold; color:#33475b; }
+.prow:hover .pcell { background:#f2f7fd; }
+.ok { color:#1a7f37; font-weight:bold; }
+.err { color:#c62828; font-weight:bold; }
+.warn { color:#b26a00; font-weight:bold; }
+.gray { color:#888; }
+.hint { color:#6b7a8a; font-size:11px; }
+#log { width:100%; height:70px; font-family:Consolas,monospace; font-size:11px; border:1px solid #dde4ec; }
+#teacherCard { border:2px solid #2c5aa0; background:#f4f8ff; padding:12px; }
+#teacherCard .big { font-size:18px; font-weight:bold; color:#1e4079; margin:4px 0 8px 0; }
+#teacherCard .ip { font-family:Consolas,monospace; color:#2c5aa0; }
+input[type=text] { font-family:Consolas,monospace; height:20px; width:170px; border:1px solid #9aa8b8; }
+.step { padding:2px 0; line-height:1.6; }
+
+/* ===== STUDENT DARK THEME (IE8-safe) ===== */
+html.role-student { background-color:#070b14; }
+body.role-student {
+  background-color:#070b14;
+  background-image:url(bg-student.jpg);
+  background-repeat:no-repeat;
+  background-position:0 0;
+  background-attachment:scroll;
+  color:#c9d1d9;
+}
+body.role-student #hdr { background:transparent url(panel-dark.png) repeat; border-bottom:1px solid #30363d; }
+body.role-student #roleTag { color:#58a6ff; border-color:#1f6feb; background:#11203a; }
+body.role-student #hdrInfo { color:#8b949e; }
+body.role-student #toolbar { background:transparent url(panel-dark.png) repeat; border-bottom:1px solid #30363d; }
+body.role-student button { background:#21262d; color:#c9d1d9; border:1px solid #30363d; }
+body.role-student button:hover { background:#30363d; }
+body.role-student button.main { background:#1f6feb; color:#ffffff; border:1px solid #1f6feb; }
+body.role-student button.main:hover { background:#388bfd; }
+body.role-student #status { background:transparent url(panel-dark.png) repeat; color:#8b949e; border-bottom:1px solid #30363d; }
+body.role-student .section { background:transparent url(panel-dark.png) repeat; border:1px solid #30363d; }
+body.role-student .section h3 { color:#58a6ff; border-bottom:1px solid #30363d; }
+body.role-student .pcell { border:1px solid #30363d; color:#c9d1d9; }
+body.role-student .phead .pcell { background:#0d1117; color:#8b949e; }
+body.role-student .prow:hover .pcell { background:#1c2128; }
+body.role-student .hint { color:#6e7681; }
+body.role-student #teacherCard { background:transparent url(panel-dark.png) repeat; border:2px solid #1f6feb; }
+body.role-student #teacherCard .big { color:#58a6ff; }
+body.role-student #teacherCard .ip { color:#3fb950; }
+body.role-student input[type=text] { background:#0d1117; color:#c9d1d9; border:1px solid #30363d; }
+body.role-student #log { background:#0d1117; color:#8b949e; border:1px solid #30363d; }
+body.role-student .ok { color:#3fb950; }
+body.role-student .err { color:#f85149; }
+body.role-student .warn { color:#d29922; }
+body.role-student .gray { color:#6e7681; }
+/* 背景层：独立 div，兼容性优于 body 背景 */
+#bgLayer { display:none; }
+body.role-student #bgLayer {
+  display:block;
+  position:absolute;
+  left:0; top:0;
+  width:100%;
+  height:100%;
+  z-index:0;
+  background-color:#070b14;
+  background-image:url(bg-student.jpg);
+  background-repeat:no-repeat;
+  background-position:0 0;
+  background-attachment:scroll;
+}
+body.role-student #hdr,
+body.role-student #toolbar,
+body.role-student #status,
+body.role-student .section { position:relative; z-index:1; }
+</style>
+</head>
+<body>
+
+<div id="bgLayer"></div>
+
+<div id="hdr">
+  <span id="roleTag">加载中</span>
+  <span id="hdrInfo"></span>
+</div>
+
+<div id="toolbar">
+  <span id="tbTeacher" style="display:none">
+    <button class="main" onclick="doScan()">刷新学生机</button>
+    <button onclick="doFullScan()">全段扫描</button>
+    <button onclick="doOpenSelf()">我的共享目录</button>
+    <button onclick="doSetupShare()">配置共享</button>
+    <button onclick="doEnableAutostart()">开机自启</button>
+  </span>
+  <span id="tbStudent" style="display:none">
+    <button class="main" onclick="doOpenTeacher()">打开教师目录</button>
+    <button onclick="doScan()">刷新</button>
+    <button onclick="doFullScan()">全段扫描</button>
+    <button onclick="doOpenSelf()">我的共享目录</button>
+    <button onclick="doSetupShare()">配置共享</button>
+    <button onclick="doEnableAutostart()">开机自启</button>
+  </span>
+</div>
+
+<div id="status">正在启动…</div>
+
+<!-- 教师端：操作说明 -->
+<div id="areaTeacher" style="display:none">
+  <div class="section">
+    <h3>教师端 · 使用说明</h3>
+    <div class="step"><b>1</b> 点「配置共享」建好本机共享（只需一次）。</div>
+    <div class="step"><b>2</b> 点「刷新学生机」，就会列出同网段的学生电脑。</div>
+    <div class="step"><b>3</b> 在列表里点某个学生 → 点「打开」，即可进入他的共享文件夹收发作业。</div>
+    <div class="hint">学生端要运行「学生端.bat」，他们才能被自动识别出来。</div>
+  </div>
+
+  <div class="section">
+    <h3>学生机列表</h3>
+    <div id="teacherStat" class="hint" style="margin-bottom:6px;">尚未扫描</div>
+    <div id="teacherBody" class="list">
+      <div class="prow"><div class="pcell hint" style="border-color:#dde4ec">点上面的「刷新学生机」开始扫描。</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 学生端 -->
+<div id="areaStudent" style="display:none">
+  <div class="section" id="teacherCardBox">
+    <h3>教师机</h3>
+    <div id="teacherCard">
+      <div class="hint" id="teacherTip">正在查找教师机…</div>
+      <div class="big" id="teacherName">—</div>
+      <div>地址：<span class="ip" id="teacherIp">—</span></div>
+      <div style="margin-top:10px;">
+        <button class="main" onclick="doOpenTeacher()" style="height:32px;min-width:150px;font-size:13px;">打开教师共享目录</button>
+        <button onclick="doFindTeacher()" style="height:32px;">重新查找</button>
+      </div>
+      <div class="hint" style="margin-top:8px;">
+        找不到教师机？把你教师机的 IP 填进来再点「设置教师」：
+        <input type="text" id="manualTeacher" value="" />
+        <button onclick="doSetTeacher()" style="height:22px;min-width:70px;">设置教师</button>
+        <button onclick="doScan()" style="height:22px;min-width:70px;">扫描全部</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>同学列表</h3>
+    <div id="studentStat" class="hint" style="margin-bottom:6px;">尚未扫描</div>
+    <div id="studentBody" class="list">
+      <div class="prow"><div class="pcell hint" style="border-color:#dde4ec">点「刷新」扫描同学。</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>本机信息 / 自检</h3>
+  <div id="localInfo" class="hint">检测中…</div>
+  <div id="selfCheck" style="margin-top:5px;"></div>
+</div>
+
+<div class="section">
+  <h3>运行日志</h3>
+  <textarea id="log" readonly></textarea>
+</div>
+
+<script language="JScript">
+var fso = new ActiveXObject("Scripting.FileSystemObject");
+var sh  = new ActiveXObject("WScript.Shell");
+
+var SHARE_NAME = "share";
+var SHARE_DIR  = "D:\\lan-share";
+var ROLE_FILE  = ".lanshare.ini";
+
+var ROLE = "student";
+try {
+  if (String(app.commandLine).indexOf("teacher") >= 0) ROLE = "teacher";
+} catch (e) {}
+
+var peers = [];          // {ip, role, name, state, isSelf}
+var teacherIp = "";      // 学生端：找到的教师机
+var teacherName = "";
+var selectedIp = "";
+var selfIps = [];
+var selfHost = "";
+var logLines = [];
+var scanAbort = false;
+
+function $(id) { return document.getElementById(id); }
+function trim(s) { return String(s).replace(/^\s+|\s+$/g, ""); }
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function log(s) {
+  logLines.push(s);
+  if (logLines.length > 200) logLines.shift();
+  $("log").value = logLines.join("\r\n");
+  $("log").scrollTop = $("log").scrollHeight;
+}
+function setStatus(s) { $("status").innerHTML = s; }
+
+// ---------- 多命令合并执行 ----------
+function runMulti(sections) {
+  var tmp = sh.ExpandEnvironmentStrings("%TEMP%") + "\\ls_ui_" + ROLE + ".bat";
+  var f = fso.CreateTextFile(tmp, true);
+  f.WriteLine("@echo off");
+  var i;
+  for (i = 0; i < sections.length; i++) {
+    f.WriteLine("echo @@MARK " + sections[i][0] + " @@");
+    f.WriteLine(sections[i][1]);
+  }
+  f.WriteLine("echo @@MARK END@@");
+  f.Close();
+
+  var comspec = sh.ExpandEnvironmentStrings("%COMSPEC%");
+  var exec = sh.Exec(comspec + " /c \"" + tmp + "\"");
+  var out = exec.StdOut.ReadAll();
+  try { out += exec.StdErr.ReadAll(); } catch (e) {}
+  try { exec.Terminate(); } catch (e) {}
+  try { fso.DeleteFile(tmp); } catch (e) {}
+
+  var result = {};
+  var lines = out.split(/\r?\n/);
+  var cur = null;
+  for (i = 0; i < lines.length; i++) {
+    var m = /@@MARK\s+(\w+)\s*@@/.exec(lines[i]);
+    if (m) { cur = m[1]; if (cur !== "END") result[cur] = []; continue; }
+    if (cur !== null && cur !== "END") result[cur].push(lines[i]);
+  }
+  return result;
+}
+
+function htaDir() {
+  var p = String(document.location.pathname);
+  p = decodeURIComponent(p);
+  p = p.replace(/^\//, "").replace(/\//g, "\\");
+  var i = p.lastIndexOf("\\");
+  return i > 0 ? p.substring(0, i) : p;
+}
+function fileInDir(n) { return htaDir() + "\\" + n; }
+
+// ---------- 角色文件 ----------
+function writeRoleFile() {
+  try {
+    if (!fso.FolderExists(SHARE_DIR)) return false;
+    var f = fso.CreateTextFile(SHARE_DIR + "\\" + ROLE_FILE, true, false);
+    f.WriteLine("ROLE=" + ROLE);
+    f.WriteLine("NAME=" + selfHost);
+    var bestIp = "";
+    for (var bi = 0; bi < selfIps.length; bi++) {
+      if (isPrivateIp(selfIps[bi])) { bestIp = selfIps[bi]; break; }
+    }
+    if (bestIp === "" && selfIps.length > 0) bestIp = selfIps[0];
+    f.WriteLine("IP=" + bestIp);
+    f.WriteLine("TIME=" + new Date().toLocaleString());
+    f.Close();
+    log("已写入角色文件：" + ROLE);
+    return true;
+  } catch (e) {
+    log("写角色文件失败：" + e.message);
+    return false;
+  }
+}
+
+function readRoleFile(ip) {
+  try {
+    var p = "\\\\" + ip + "\\" + SHARE_NAME + "\\" + ROLE_FILE;
+    if (!fso.FileExists(p)) return null;
+    var f = fso.OpenTextFile(p, 1);
+    var txt = f.ReadAll();
+    f.Close();
+    var info = { role: "", name: "" };
+    var ls = txt.split(/\r?\n/);
+    for (var i = 0; i < ls.length; i++) {
+      var t = trim(ls[i]);
+      if (t.indexOf("ROLE=") === 0) info.role = trim(t.substring(5)).toLowerCase();
+      if (t.indexOf("NAME=") === 0) info.name = trim(t.substring(5));
+    }
+    return info;
+  } catch (e) {
+    return null;
+  }
+}
+
+// ---------- 网络 ----------
+function isSelfIp(ip) {
+  for (var i = 0; i < selfIps.length; i++) if (selfIps[i] === ip) return true;
+  return false;
+}
+function isPrivateIp(ip) {
+  var p = ip.split(".");
+  var a = parseInt(p[0], 10), b = parseInt(p[1], 10);
+  if (a === 10) return true;
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  if (a === 192 && b === 168) return true;
+  return false;
+}
+function isNetOrBc(ip) {
+  var p = ip.split(".");
+  var l = parseInt(p[3], 10);
+  return l === 0 || l === 255;
+}
+function isSameSubnet(ip) {
+  var a = ip.split(".");
+  if (a.length !== 4) return false;
+  for (var i = 0; i < selfIps.length; i++) {
+    var b = selfIps[i].split(".");
+    if (b.length !== 4) continue;
+    if (a[0] === b[0] && a[1] === b[1] && a[2] === b[2]) return true;
+  }
+  return false;
+}
+
+// 收集同网段候选 IP（只读 ARP，不发包）
+function collectCandidates() {
+  var r = runMulti([["ARP", "arp -a"]]);
+  var arr = r["ARP"] || [];
+  var ips = [];
+  var seen = {};
+  for (var i = 0; i < arr.length; i++) {
+    var m = /(\d+\.\d+\.\d+\.\d+)\s+(([0-9a-f]{2}-){5}[0-9a-f]{2})/i.exec(arr[i]);
+    if (!m) continue;
+    var ip = m[1];
+    if (seen[ip]) continue;
+    seen[ip] = true;
+    if (isSelfIp(ip)) continue;
+    if (!isPrivateIp(ip)) continue;
+    if (isNetOrBc(ip)) continue;
+    if (!isSameSubnet(ip)) continue;
+    ips.push(ip);
+  }
+  return ips;
+}
+
+// ---------- 扫描 ----------
+// ===== 设备记忆：把扫到的机器存本地，下次开机秒开列表 =====
+function deviceFile() { return htaDir() + "\\devices.ini"; }
+
+function loadDevices() {
+  var list = [];
+  try {
+    if (!fso.FileExists(deviceFile())) return list;
+    var f = fso.OpenTextFile(deviceFile(), 1);
+    var txt = f.ReadAll();
+    f.Close();
+    var lines = txt.split(/\r?\n/);
+    for (var i = 0; i < lines.length; i++) {
+      var s = trim(lines[i]);
+      if (s === "" || s.indexOf("#") === 0) continue;
+      var p = s.split("|");
+      if (p.length >= 2 && trim(p[0]).length > 0) {
+        list.push({ ip: trim(p[0]), role: trim(p[1]), name: p.length > 2 ? trim(p[2]) : "" });
+      }
+    }
+  } catch (e) {}
+  return list;
+}
+
+function saveDevices() {
+  try {
+    var f = fso.CreateTextFile(deviceFile(), true, false);
+    f.WriteLine("# 机房共享 设备记忆 自动生成 可删除");
+    for (var i = 0; i < peers.length; i++) {
+      if (peers[i].state === "已识别") {
+        f.WriteLine(peers[i].ip + "|" + peers[i].role + "|" + peers[i].name);
+      }
+    }
+    f.Close();
+  } catch (e) { log("保存设备记忆失败：" + e.message); }
+}
+
+// ===== 全段扫描：分批并行 ping 254 个地址 =====
+// 目的只是把对方 MAC 写进本机 ARP 表，不要求对方回应 ICMP。
+// 完全不依赖网络发现 / 家庭组 / Computer Browser / DNS。
+function scanSubnetPing() {
+  if (selfIps.length === 0) return;
+  var parts = selfIps[0].split(".");
+  var prefix = parts[0] + "." + parts[1] + "." + parts[2] + ".";
+  var tmp = sh.ExpandEnvironmentStrings("%TEMP%") + "\\ls_sweep_" + ROLE + ".bat";
+  var f = fso.CreateTextFile(tmp, true);
+  f.WriteLine("@echo off");
+  var batch = 32;
+  for (var i = 1; i <= 254; i++) {
+    f.WriteLine("start /b /low ping -n 1 -w 120 " + prefix + i + " >nul 2>&1");
+    if (i % batch === 0) f.WriteLine("ping -n 1 -w 350 127.0.0.1 >nul");
+  }
+  f.WriteLine("ping -n 1 -w 600 127.0.0.1 >nul");
+  f.Close();
+  var comspec = sh.ExpandEnvironmentStrings("%COMSPEC%");
+  var exec = sh.Exec(comspec + " /c \"" + tmp + "\"");
+  try { exec.StdOut.ReadAll(); } catch (e) {}
+  try { exec.Terminate(); } catch (e) {}
+  try { fso.DeleteFile(tmp); } catch (e) {}
+}
+
+// ===== 扫描入口 =====
+function doScan()     { doScanEx("quick"); }
+function doFullScan() { doScanEx("full");  }
+
+function doScanEx(mode) {
+  scanAbort = false;
+  var full = (mode === "full");
+  setStatus(full ? "正在进行全段扫描，约 5~10 秒…" : "正在扫描…");
+  log("---- 扫描开始（" + (full ? "全段主动" : "快速") + "）----");
+
+  var remembered = loadDevices();
+  if (!full && remembered.length > 0) {
+    peers = [];
+    for (var i = 0; i < remembered.length; i++) {
+      peers.push({ ip: remembered[i].ip, role: remembered[i].role, name: remembered[i].name, state: "已识别", isSelf: false });
+    }
+    renderAll();
+    setStatus("已从记忆加载 " + peers.length + " 台，正在刷新…");
+    log("从设备记忆加载 " + peers.length + " 台。");
+  }
+
+  if (full) {
+    setStatus("全段扫描中：正在探测 254 个地址…");
+    scanSubnetPing();
+    setStatus("扫描完成，正在读取 ARP 表…");
+    log("全段扫描完成。");
+  }
+
+  var ips = collectCandidates();
+  log("ARP 表中发现 " + ips.length + " 台同网段主机。");
+
+  if (ips.length === 0 && peers.length === 0) {
+    renderAll();
+    setStatus("没有发现任何机器。请确认网线和交换机，或点「全段扫描」。");
+    return;
+  }
+
+  var result = [];
+  for (var j = 0; j < ips.length; j++) {
+    if (scanAbort) { log("扫描已取消。"); break; }
+    setStatus("正在识别 " + (j + 1) + " / " + ips.length + "：" + ips[j]);
+    var info = readRoleFile(ips[j]);
+    result.push({
+      ip: ips[j],
+      role: info && info.role ? info.role : "unknown",
+      name: info && info.name ? info.name : "",
+      state: info ? "已识别" : "未识别",
+      isSelf: false
+    });
+  }
+
+  for (var k = 0; k < remembered.length; k++) {
+    var found = false;
+    for (var m2 = 0; m2 < result.length; m2++) {
+      if (result[m2].ip === remembered[k].ip) { found = true; break; }
+    }
+    if (!found) {
+      result.push({ ip: remembered[k].ip, role: remembered[k].role, name: remembered[k].name, state: "未在线", isSelf: false });
+    }
+  }
+
+  peers = result;
+
+  teacherIp = "";
+  teacherName = "";
+  for (var n = 0; n < peers.length; n++) {
+    if (peers[n].role === "teacher" && peers[n].state === "已识别") {
+      teacherIp = peers[n].ip; teacherName = peers[n].name; break;
+    }
+  }
+  if (teacherIp === "") {
+    for (n = 0; n < peers.length; n++) {
+      if (peers[n].role === "teacher") { teacherIp = peers[n].ip; teacherName = peers[n].name; break; }
+    }
+  }
+
+  renderAll();
+  saveDevices();
+
+  var okc = 0, offc = 0;
+  for (var q = 0; q < peers.length; q++) {
+    if (peers[q].state === "已识别") okc++;
+    if (peers[q].state === "未在线") offc++;
+  }
+  setStatus("扫描完成：识别 " + okc + " 台" + (offc > 0 ? "，离线 " + offc + " 台" : "") + "。");
+  log("扫描完成：识别 " + okc + "，离线 " + offc);
+  if (ROLE === "student") updateTeacherCard();
+}
+
+
+function renderAll() {
+  if (ROLE === "teacher") renderTeacherList();
+  else renderStudentList();
+}
+
+// ---------- 教师端渲染 ----------
+// 生成列表表头（列宽百分比），供教师端和学生端共用
+function listHead(w1, w2, w3, w4) {
+  return "<div class='prow phead'>"
+       + "<div class='pcell' style='width:" + w1 + "%'>IP / 主机名</div>"
+       + "<div class='pcell' style='width:" + w2 + "%'>角色</div>"
+       + "<div class='pcell' style='width:" + w3 + "%'>状态</div>"
+       + "<div class='pcell' style='width:" + w4 + "%'>操作</div>"
+       + "</div>";
+}
+function renderTeacherList() {
+  var body = $("teacherBody");
+  var rows = [];
+  var i;
+  var students = 0, teachers = 0;
+  for (i = 0; i < peers.length; i++) {
+    if (peers[i].role === "student") students++;
+    if (peers[i].role === "teacher") teachers++;
+  }
+  $("teacherStat").innerHTML = "候选 " + peers.length + " 台 ｜ 学生机 " + students + " 台 ｜ 其他教师机 " + teachers + " 台";
+
+  if (peers.length === 0) {
+    body.innerHTML = listHead(26, 20, 16, 38) + "<div class='prow'><div class='pcell hint'>没发现同网段电脑。请确认学生也在同一台交换机上，并运行了「学生端.exe」。</div></div>";
+    return;
+  }
+
+  var html = listHead(26, 20, 16, 38);
+  for (i = 0; i < peers.length; i++) {
+    var p = peers[i];
+    var roleTxt = "未知";
+    var roleCls = "gray";
+    if (p.role === "student") { roleTxt = "学生机"; roleCls = "ok"; }
+    else if (p.role === "teacher") { roleTxt = "教师机"; roleCls = "warn"; }
+
+    var nameTxt = p.name ? ("<br><span class='hint'>" + esc(p.name) + "</span>") : "";
+    html += "<div class='prow' onclick='pickPeer(\"" + p.ip + "\")' style='cursor:pointer'>"
+         +  "<div class='pcell'>" + esc(p.ip) + nameTxt + "</div>"
+         +  "<div class='pcell " + roleCls + "'>" + roleTxt + "</div>"
+         +  "<div class='pcell'>" + esc(p.state) + "</div>"
+         +  "<div class='pcell'><button onclick='event.cancelBubble=true;openPeer(\"" + p.ip + "\")' style='min-width:56px;height:22px'>打开</button></div>"
+         +  "</div>";
+  }
+  body.innerHTML = html;
+}
+
+// ---------- 学生端渲染 ----------
+function renderStudentList() {
+  var body = $("studentBody");
+  var i;
+  var others = [];
+  for (i = 0; i < peers.length; i++) {
+    if (peers[i].role === "student" && peers[i].ip !== teacherIp) others.push(peers[i]);
+  }
+  $("studentStat").innerHTML = "同学机 " + others.length + " 台";
+
+  if (others.length === 0) {
+    body.innerHTML = listHead(30, 18, 16, 36) + "<div class='prow'><div class='pcell hint'>没发现其他同学机。点「刷新」再试，或问老师教师机 IP。</div></div>";
+    return;
+  }
+  var html = listHead(30, 18, 16, 36);
+  for (i = 0; i < others.length; i++) {
+    var p = others[i];
+    var nameTxt = p.name ? ("<br><span class='hint'>" + esc(p.name) + "</span>") : "";
+    html += "<div class='prow' style='cursor:pointer'>"
+         +  "<div class='pcell'>" + esc(p.ip) + nameTxt + "</div>"
+         +  "<div class='pcell ok'>学生机</div>"
+         +  "<div class='pcell'>" + esc(p.state) + "</div>"
+         +  "<div class='pcell'><button onclick='openPeer(\"" + p.ip + "\")' style='min-width:56px;height:22px'>打开</button></div>"
+         +  "</div>";
+  }
+  body.innerHTML = html;
+}
+
+function updateTeacherCard() {
+  if (teacherIp) {
+    $("teacherTip").innerHTML = "已找到教师机";
+    $("teacherName").innerHTML = teacherName ? esc(teacherName) : "教师机";
+    $("teacherIp").innerHTML = esc(teacherIp);
+    $("manualTeacher").value = teacherIp;
+  } else {
+    $("teacherTip").innerHTML = "<span class='err'>没找到教师机</span>。请确认教师端已运行，或在下面手动填写教师机 IP。";
+    $("teacherName").innerHTML = "—";
+    $("teacherIp").innerHTML = "—";
+  }
+}
+
+// ---------- 操作 ----------
+function pickPeer(ip) { selectedIp = ip; }
+
+function openPeer(ip) {
+  var path = "\\\\" + ip + "\\" + SHARE_NAME;
+  log("打开：" + path);
+  setStatus("正在打开 " + path + " …");
+  sh.Run("explorer.exe \"" + path + "\"", 1, false);
+}
+
+function doOpenTeacher() {
+  if (!teacherIp) {
+    alert("还没找到教师机。\n\n请先点「重新查找」，\n或者在下面填写教师机 IP 后点「设置教师」。");
+    return;
+  }
+  openPeer(teacherIp);
+}
+
+function doFindTeacher() {
+  if (ROLE !== "student") return;
+  setStatus("正在查找教师机…");
+  doScan();
+}
+
+function doSetTeacher() {
+  var ip = trim($("manualTeacher").value);
+  if (ip.length === 0) { alert("请先填写教师机 IP。"); return; }
+  teacherIp = ip;
+  teacherName = "";
+  var i;
+  var found = false;
+  for (i = 0; i < peers.length; i++) {
+    if (peers[i].ip === ip) { teacherName = peers[i].name; found = true; break; }
+  }
+  updateTeacherCard();
+  log("手动设置教师机：" + ip);
+  setStatus("已把 " + ip + " 设为教师机，点「打开教师共享目录」。");
+}
+
+function doOpenSelf() {
+  if (!fso.FolderExists(SHARE_DIR)) {
+    alert("本机还没有共享目录 " + SHARE_DIR + "。\n请先点「配置共享」。");
+    return;
+  }
+  log("打开本机共享目录：" + SHARE_DIR);
+  sh.Run("explorer.exe \"" + SHARE_DIR + "\"", 1, false);
+}
+
+function doSetupShare() {
+  var bat = fileInDir("setup-share.bat");
+  if (!fso.FileExists(bat)) { alert("找不到 setup-share.bat，请确认文件都在同一目录。"); return; }
+  log("调用 setup-share.bat");
+  sh.Run("%COMSPEC% /c \"" + bat + "\"", 1, true);
+  log("配置窗口已关闭，重新自检…");
+  selfCheck();
+  writeRoleFile();
+}
+
+function doEnableAutostart() {
+  var bat = fileInDir("autostart.bat");
+  if (!fso.FileExists(bat)) { alert("找不到 autostart.bat，请确认文件都在同一目录。"); return; }
+  sh.Run("%COMSPEC% /c \"" + bat + "\" \"" + ROLE + "\"", 1, true);
+}
+
+// ---------- 启动 ----------
+// 按角色切换界面
+function applyRoleUI() {
+  document.body.className = "role-" + ROLE;
+  document.documentElement.className = "role-" + ROLE;
+  if (ROLE === "teacher") {
+    $("roleTag").innerHTML = "教师端 · 父级主机";
+    $("tbTeacher").style.display = "";
+    $("areaTeacher").style.display = "";
+    document.title = "机房共享 - 教师端";
+  } else {
+    $("roleTag").innerHTML = "学生端 · 子级主机";
+    $("tbStudent").style.display = "";
+    $("areaStudent").style.display = "";
+    document.title = "机房共享 - 学生端";
+  }
+}
+
+function init() {
+  applyRoleUI();
+  log("启动，角色=" + ROLE);
+
+  // 本机信息
+  var r = runMulti([
+    ["HOST",  "hostname"],
+    ["IP",    "ipconfig | findstr /i \"IPv4\""],
+    ["SHARE", "net share"],
+    ["SVC",   "sc query LanmanServer"],
+    ["FW",    "netsh advfirewall show allprofiles state"],
+    ["GUARD", "reg query ""HKLM\\SOFTWARE\\LanShare"" /v GuardState"]
+  ]);
+
+  selfHost = r["HOST"] ? trim(r["HOST"].join("")) : "未知";
+  selfIps = [];
+  var ipl = r["IP"] || [];
+  for (var i = 0; i < ipl.length; i++) {
+    var m = /(\d+\.\d+\.\d+\.\d+)\s*$/.exec(trim(ipl[i]));
+    if (m && !isSelfIp(m[1])) selfIps.push(m[1]);
+  }
+  $("hdrInfo").innerHTML = esc(selfHost) + " ｜ " + esc(selfIps.join("  "));
+  $("localInfo").innerHTML = "<b>主机名：</b>" + esc(selfHost)
+    + "&nbsp;&nbsp;<b>IP：</b>" + (selfIps.length > 0 ? esc(selfIps.join("  ")) : "<span class='err'>未检测到</span>");
+
+  renderSelfCheck(r["SHARE"], r["SVC"], r["FW"], r["GUARD"]);
+  writeRoleFile();
+  doScan();
+}
+
+function renderSelfCheck(shareLines, svcLines, fwLines, guardLines) {
+  var items = [];
+  var hasShare = false;
+  if (shareLines) {
+    for (var i = 0; i < shareLines.length; i++) {
+      var t = trim(shareLines[i]).toLowerCase();
+      if (t.indexOf(SHARE_NAME) === 0) { hasShare = true; break; }
+    }
+  }
+  items.push(hasShare
+    ? "<span class='ok'>[正常]</span> 本机共享已建立"
+    : "<span class='err'>[待办]</span> 本机还没开共享，点「配置共享」");
+
+  var svc = svcLines ? svcLines.join("\n").toUpperCase() : "";
+  items.push(svc.indexOf("RUNNING") >= 0
+    ? "<span class='ok'>[正常]</span> 共享服务运行中"
+    : "<span class='err'>[异常]</span> 共享服务未运行，点「配置共享」");
+
+  var fw = fwLines ? fwLines.join("\n") : "";
+  items.push((/ON/i.test(fw) || fw.indexOf("启用") >= 0)
+    ? "<span class='warn'>[提示]</span> 防火墙已开，连不上就点「配置共享」自动放行"
+    : "<span class='ok'>[正常]</span> 防火墙已关");
+
+  // 防装拦截状态
+  var gs = guardLines ? guardLines.join(" ").toLowerCase() : "";
+  if (gs.indexOf("enabled") >= 0) {
+    items.push("<span class='ok'>[正常]</span> 防装拦截已启用（360/2345/金山毒霸 无法安装）");
+  } else if (gs.indexOf("skipped") >= 0) {
+    items.push("<span class='warn'>[跳过]</span> 检测到本机有 360，未启用防装拦截");
+  } else if (gs.indexOf("failed") >= 0) {
+    items.push("<span class='err'>[失败]</span> 防装拦截写入失败，缺管理员权限");
+  } else if (gs.indexOf("off") >= 0) {
+    items.push("<span class='gray'>[关闭]</span> 防装拦截已关闭");
+  } else {
+    items.push("<span class='hint'>[未配置]</span> 点「配置共享」会顺带启用防装拦截");
+  }
+  $("selfCheck").innerHTML = items.join("<br>");
+}
+
+function selfCheck() {
+  var r = runMulti([
+    ["SHARE", "net share"],
+    ["SVC",   "sc query LanmanServer"],
+    ["FW",    "netsh advfirewall show allprofiles state"],
+    ["GUARD", "reg query ""HKLM\\SOFTWARE\\LanShare"" /v GuardState"]
+  ]);
+  renderSelfCheck(r["SHARE"], r["SVC"], r["FW"], r["GUARD"]);
+}
+
+window.onload = init;
+</script>
+</body>
+</html>

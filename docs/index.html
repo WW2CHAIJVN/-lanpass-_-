@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lanpass - 跨版本局域网文件共享</title>
+<meta name="description" content="跨 Windows 7/10/11 的零依赖局域网文件共享工具，不依赖家庭组、网络发现或任何运行库。">
+<style>
+:root{
+  --bg:#070b14;
+  --bg2:#0d1524;
+  --card:rgba(22,32,50,.72);
+  --border:rgba(88,166,255,.16);
+  --border-hi:rgba(88,166,255,.42);
+  --text:#c9d6e8;
+  --dim:#7d90a8;
+  --blue:#4c9aff;
+  --blue2:#1f6feb;
+  --green:#3fb950;
+  --cyan:#39d3e6;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.7;
+  overflow-x:hidden;
+}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* 背景 */
+.bg{position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(1100px 600px at 82% -8%, rgba(31,111,235,.22), transparent 62%),
+  radial-gradient(900px 700px at 6% 108%, rgba(63,185,80,.13), transparent 60%),
+  linear-gradient(180deg,#070b14,#0b1220 55%,#070b14);
+}
+.grid{position:fixed;inset:0;z-index:-1;opacity:.5;
+  background-image:linear-gradient(rgba(88,166,255,.045) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(88,166,255,.045) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:radial-gradient(circle at 50% 32%,#000 20%,transparent 78%);
+  -webkit-mask-image:radial-gradient(circle at 50% 32%,#000 20%,transparent 78%);
+}
+
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+
+/* 导航 */
+nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
+  background:rgba(7,11,20,.78);border-bottom:1px solid rgba(88,166,255,.1)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:58px}
+nav .logo{font-weight:800;font-size:17px;letter-spacing:-.02em;color:#fff}
+nav .logo span{color:var(--blue)}
+nav ul{display:flex;gap:26px;list-style:none;font-size:14px}
+nav ul a{color:var(--dim)}
+nav ul a:hover{color:var(--blue);text-decoration:none}
+@media(max-width:720px){nav ul{display:none}}
+
+/* Hero */
+header{padding:88px 0 68px;text-align:center;position:relative}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 15px;border-radius:999px;
+  border:1px solid var(--border-hi);background:rgba(31,111,235,.1);
+  color:var(--blue);font-size:12.5px;margin-bottom:26px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green);
+  box-shadow:0 0 10px var(--green);animation:pulse 2.2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+h1{font-size:clamp(44px,8vw,80px);line-height:1.05;font-weight:800;
+  letter-spacing:-.035em;color:#fff;margin-bottom:14px}
+h1 .g{background:linear-gradient(92deg,#58a6ff 0%,#39d3e6 55%,#3fb950 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{font-size:clamp(16px,2.4vw,20px);color:var(--dim);max-width:660px;margin:0 auto 14px}
+.sub b{color:#e6eefb;font-weight:600}
+.lead{font-size:14px;color:#5d7186;max-width:640px;margin:0 auto 34px}
+.btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:9px;padding:13px 28px;border-radius:10px;
+  font-size:15px;font-weight:600;transition:.22s;border:1px solid transparent}
+.btn:hover{transform:translateY(-2px);text-decoration:none}
+.btn-p{background:linear-gradient(135deg,#1f6feb,#3d8bff);color:#fff;
+  box-shadow:0 6px 26px rgba(31,111,235,.34)}
+.btn-p:hover{box-shadow:0 10px 34px rgba(31,111,235,.5)}
+.btn-s{background:rgba(22,32,50,.7);border-color:var(--border);color:var(--text)}
+.btn-s:hover{border-color:var(--border-hi);background:rgba(31,111,235,.12)}
+
+/* 统计条 */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin:66px 0 0;
+  border:1px solid var(--border);border-radius:14px;overflow:hidden;background:var(--border)}
+.stat{background:rgba(10,16,28,.9);padding:26px 16px;text-align:center}
+.stat .n{font-size:29px;font-weight:800;color:#fff;letter-spacing:-.02em}
+.stat .n small{font-size:15px;font-weight:600;color:var(--blue);margin-left:2px}
+.stat .l{font-size:12px;color:var(--dim);margin-top:5px}
+@media(max-width:640px){.stats{grid-template-columns:repeat(2,1fr)}}
+
+/* 区块 */
+section{padding:78px 0}
+.stitle{text-align:center;margin-bottom:46px}
+.stitle h2{font-size:clamp(26px,4vw,36px);font-weight:800;color:#fff;letter-spacing:-.022em}
+.stitle p{color:var(--dim);margin-top:11px;font-size:15px}
+
+/* 卡片网格 */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.cards{grid-template-columns:1fr}}
+.card{position:relative;padding:26px;border-radius:14px;background:var(--card);
+  border:1px solid var(--border);backdrop-filter:blur(10px);transition:.25s;overflow:hidden}
+.card::before{content:"";position:absolute;inset:0;border-radius:14px;padding:1px;
+  background:linear-gradient(140deg,rgba(88,166,255,.5),transparent 42%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:.25s}
+.card:hover{transform:translateY(-4px);border-color:var(--border-hi)}
+.card:hover::before{opacity:1}
+.card .ico{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;
+  margin-bottom:16px;background:rgba(31,111,235,.13);border:1px solid var(--border)}
+.card .ico svg{width:20px;height:20px;stroke:var(--blue);fill:none;stroke-width:1.9;
+  stroke-linecap:round;stroke-linejoin:round}
+.card h3{font-size:16px;font-weight:700;color:#fff;margin-bottom:9px}
+.card p{font-size:13.5px;color:var(--dim);line-height:1.75}
+
+/* 截图 */
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:760px){.shots{grid-template-columns:1fr}}
+.shot{border:1px solid var(--border);border-radius:14px;overflow:hidden;
+  background:rgba(10,16,28,.9);transition:.25s}
+.shot:hover{border-color:var(--border-hi);transform:translateY(-3px)}
+.shot img{width:100%;display:block}
+.shot .cap{padding:13px 17px;font-size:13px;color:var(--dim);
+  border-top:1px solid var(--border);display:flex;justify-content:space-between}
+.shot .cap b{color:#fff;font-weight:600}
+
+/* 原理 */
+.flow{max-width:820px;margin:0 auto;display:flex;flex-direction:column;gap:0}
+.step{display:flex;gap:20px;position:relative;padding-bottom:30px}
+.step:last-child{padding-bottom:0}
+.step::before{content:"";position:absolute;left:19px;top:44px;bottom:0;width:1px;
+  background:linear-gradient(180deg,var(--border-hi),transparent)}
+.step:last-child::before{display:none}
+.snum{flex:0 0 40px;height:40px;border-radius:10px;display:grid;place-items:center;
+  font-weight:800;font-size:15px;color:var(--blue);
+  background:rgba(31,111,235,.12);border:1px solid var(--border-hi);position:relative;z-index:1}
+.scnt h3{font-size:15.5px;font-weight:700;color:#fff;margin-bottom:6px;padding-top:7px}
+.scnt p{font-size:13.5px;color:var(--dim)}
+code{font-family:Consolas,Monaco,monospace;font-size:12.5px;
+  background:rgba(88,166,255,.09);border:1px solid rgba(88,166,255,.14);
+  padding:1.5px 6px;border-radius:5px;color:#9fc6ff}
+
+/* 代码块 */
+pre{background:rgba(6,10,18,.9);border:1px solid var(--border);border-radius:12px;
+  padding:20px 22px;overflow-x:auto;margin:18px 0;position:relative}
+pre code{background:none;border:none;padding:0;color:#a8c4e6;font-size:13px;line-height:1.85}
+.hl{color:var(--green)}
+.cm{color:#4e6075}
+
+/* 提示框 */
+.note{display:flex;gap:14px;padding:18px 20px;border-radius:12px;margin:22px 0;
+  background:rgba(31,111,235,.07);border:1px solid var(--border);font-size:13.5px;color:var(--dim)}
+.note b{color:#dbe8f8}
+.note.warn{background:rgba(210,153,34,.07);border-color:rgba(210,153,34,.28)}
+.note.warn b{color:#e8c98a}
+
+/* 折叠 */
+details{border:1px solid var(--border);border-radius:12px;margin-bottom:11px;
+  background:rgba(10,16,28,.62);overflow:hidden;transition:.22s}
+details[open]{border-color:var(--border-hi);background:rgba(13,21,36,.9)}
+summary{padding:16px 20px;cursor:pointer;font-weight:600;font-size:14px;color:#dbe8f8;
+  list-style:none;display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--blue);font-size:19px;font-weight:400;transition:.22s}
+details[open] summary::after{content:"-"}
+details p{padding:0 20px 18px;font-size:13.5px;color:var(--dim)}
+
+/* 页脚 */
+footer{border-top:1px solid rgba(88,166,255,.1);padding:44px 0 52px;text-align:center}
+footer p{font-size:13px;color:#54677d}
+footer .lks{margin-top:14px;display:flex;gap:22px;justify-content:center;flex-wrap:wrap;font-size:13px}
+
+/* 进入动画 */
+.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.22,1,.36,1),transform .65s cubic-bezier(.22,1,.36,1)}
+.reveal.on{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="grid"></div>
+
+<nav>
+  <div class="wrap">
+    <div class="logo">lan<span>pass</span></div>
+    <ul>
+      <li><a href="#why">为什么</a></li>
+      <li><a href="#features">特性</a></li>
+      <li><a href="#shots">界面</a></li>
+      <li><a href="#how">原理</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="https://github.com/WW2CHAIJVN/-lanpass-_-">GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap">
+    <div class="badge"><span class="dot"></span> Windows 7 / 10 / 11</div>
+    <h1>lan<span class="g">pass</span></h1>
+    <p class="sub">当家庭组消失、网络发现失效、来宾访问被默认关闭时<br><b>它仍然能让 Windows 7 / 10 / 11 互相看见</b></p>
+    <p class="lead">零依赖局域网文件共享。不需要 .NET、VC++ 运行库、Java、Python、Node。<br>不需要服务器，不需要联网，不需要安装任何东西。</p>
+    <div class="btns">
+      <a class="btn btn-p" href="https://github.com/WW2CHAIJVN/-lanpass-_-/releases">下载发行版</a>
+      <a class="btn btn-s" href="https://github.com/WW2CHAIJVN/-lanpass-_-">查看源码</a>
+    </div>
+    <div class="stats reveal">
+      <div class="stat"><div class="n">34<small>MB</small></div><div class="l">内存占用</div></div>
+      <div class="stat"><div class="n">0<small>%</small></div><div class="l">空闲 CPU</div></div>
+      <div class="stat"><div class="n">4<small>秒</small></div><div class="l">全段扫描</div></div>
+      <div class="stat"><div class="n">0</div><div class="l">外部依赖</div></div>
+    </div>
+  </div>
+</header>
+
+<section id="why">
+  <div class="wrap">
+    <div class="stitle reveal">
+      <h2>为什么「网上邻居」看不到人</h2>
+      <p>两层原因，第二层才是真正的病根</p>
+    </div>
+    <div class="cards">
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M3 7h18M3 12h18M3 17h18"/></svg></div>
+        <h3>表层：家庭组没了</h3>
+        <p>家庭组在 Windows 7 引入，Windows 10 1803（2018）被微软彻底移除。Win7 和 Win10/11 之间根本没有共同机制。</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg></div>
+        <h3>深层：SMB 来宾认证被关</h3>
+        <p>从 Windows 10 1709 起，<code>AllowInsecureGuestAuth</code> 默认为 0，拒绝所有匿名 SMB 访问。即使绕过家庭组、用 IP 直连，Win10/11 仍报「安全策略阻止未经身份验证的来宾访问」。</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></div>
+        <h3>结论</h3>
+        <p>只解决家庭组没有用。真正卡住的是 SMB 认证这一层。lanpass 同时处理这两层，才能做到跨版本互通。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="stitle reveal">
+      <h2>核心特性</h2>
+      <p>为机房老机器设计，不是为旗舰机benchmark</p>
+    </div>
+    <div class="cards">
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg></div>
+        <h3>零依赖</h3>
+        <p>只用系统自带的 mshta / cmd / net / ping / arp。不需要 .NET（任何版本）、VC++、Java、Python、Node、Rust、Go。</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></div>
+        <h3>不靠网络发现</h3>
+        <p>家庭组、网络发现、Computer Browser、SSDP、DNS 全部失效也照用。发现靠 ARP 表和主动扫描。</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M9 17H6a4 4 0 0 1 0-8h3M15 7h3a4 4 0 0 1 0 8h-3M8 12h8"/></svg></div>
+        <h3>跨版本互通</h3>
+        <p>Win7 / Win10 / Win11 双向访问。配置共享时自动写入 4 项注册表修复认证限制。</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17.5" cy="9" r="2.4"/><path d="M17 14c2.2 0 4 1.8 4 4"/></svg></div>
+        <h3>双端设计</h3>
+        <p>教师端管理全班、一键打开任意学生目录；学生端一键打开教师目录交作业。一个程序，两种角色。</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg></div>
+        <h3>主动发现</h3>
+        <p>ARP 表 + 全段 ping 扫描（254 个地址，分批 32 个并行，约 4 秒）。ping 只为填充 ARP 表，不等 ICMP 回应。</p>
+      </div>
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 10h8M8 14h6"/></svg></div>
+        <h3>设备记忆</h3>
+        <p>扫到的机器存进 devices.ini，下次开机直接读文件，列表秒出，不用重新扫描。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="shots">
+  <div class="wrap">
+    <div class="stitle reveal">
+      <h2>界面</h2>
+      <p>浅色教师端，深色学生端</p>
+    </div>
+    <div class="shots">
+      <div class="shot reveal">
+        <img src="screenshots/teacher.png" alt="教师端界面" loading="lazy">
+        <div class="cap"><b>教师端</b><span>父级主机</span></div>
+      </div>
+      <div class="shot reveal">
+        <img src="screenshots/student.png" alt="学生端界面" loading="lazy">
+        <div class="cap"><b>学生端</b><span>子级主机</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap">
+    <div class="stitle reveal">
+      <h2>工作原理</h2>
+      <p>四层机制，全部不依赖第三方组件</p>
+    </div>
+    <div class="flow">
+      <div class="step reveal">
+        <div class="snum">1</div>
+        <div class="scnt">
+          <h3>发现：读本机 ARP 表</h3>
+          <p>ARP 属于 TCP/IP 二层，与任何 Windows 服务无关。只要曾经通信过，ARP 表里就有对方的 MAC 和 IP。</p>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="snum">2</div>
+        <div class="scnt">
+          <h3>补充：全段 ping 扫描</h3>
+          <p>ARP 为空时，向 1~254 逐个发探测包。关键点是：ping 的目的只是把对方写进本机 ARP 表，不要求对方回应 ICMP。防火墙禁 ping 也不影响。</p>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="snum">3</div>
+        <div class="scnt">
+          <h3>识别：读角色标记文件</h3>
+          <p>每台机器在共享目录写 <code>.lanshare.ini</code>，内容是 ROLE / NAME / IP。对方读到就知道是教师还是学生。纯文件方案，不需要服务器或数据库。</p>
+        </div>
+      </div>
+      <div class="step reveal">
+        <div class="snum">4</div>
+        <div class="scnt">
+          <h3>互通：四项注册表修复</h3>
+          <p>配置共享时自动写入，解决 Win10/11 拒绝匿名 SMB 访问的问题。这是跨版本互访的技术前提。</p>
+        </div>
+      </div>
+    </div>
+    <div class="reveal">
+<pre><code><span class="cm">// 配置共享时自动执行</span>
+AllowInsecureGuestAuth = <span class="hl">1</span>      <span class="cm">允许来宾访问</span>
+LimitBlankPasswordUse  = <span class="hl">0</span>      <span class="cm">允许空密码账户远程访问</span>
+RestrictNullSessAccess = <span class="hl">0</span>      <span class="cm">允许匿名会话访问共享</span>
+net user guest /active:yes      <span class="cm">启用 Guest 账户</span></code></pre>
+    </div>
+    <div class="note reveal">
+      <div><b>安全提示</b>：打开来宾访问意味着同网段的人不需要密码就能读写共享目录。机房内网可接受，但请勿把这类共享暴露到公网。恢复方法见仓库的 <code>docs/SECURITY.md</code>。</div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <div class="stitle reveal">
+      <h2>常见问题</h2>
+      <p>完整 27 条见仓库 docs/QRA.txt</p>
+    </div>
+    <div class="reveal">
+      <details open>
+        <summary>Win10 打不开 Win7 的共享，报「安全策略阻止来宾访问」</summary>
+        <p>就是 AllowInsecureGuestAuth 的问题。两台机器都点一次「配置共享」，然后重启电脑。</p>
+      </details>
+      <details>
+        <summary>列表一直是空的</summary>
+        <p>点「全段扫描」。还不行就确认：双方 IP 前三位相同、在同一台交换机、都点过「配置共享」。</p>
+      </details>
+      <details>
+        <summary>机房没有 D 盘怎么办</summary>
+        <p>用记事本打开 setup-share.bat 和 app.hta，把 D:\lan-share 改成实际存在的路径，两处都要改，然后重新点一次「配置共享」。</p>
+      </details>
+      <details>
+        <summary>杀毒软件报警</summary>
+        <p>IExpress 自解压包 + mshta 执行脚本这两个特征容易被行为引擎打标。用「绿色版-免安装」可以降低误报，它不释放文件到临时目录、不写安装注册表。</p>
+      </details>
+      <details>
+        <summary>支持哪些系统</summary>
+        <p>Windows 7 SP1 / 8 / 8.1 / 10 / 11，32 位和 64 位都支持。Win7 上未做实机测试，代码按 IE8 引擎编写，理论上兼容。</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>MIT License · 随便用，出事不负责</p>
+    <div class="lks">
+      <a href="https://github.com/WW2CHAIJVN/-lanpass-_-">源代码</a>
+      <a href="https://github.com/WW2CHAIJVN/-lanpass-_-/releases">发行版</a>
+      <a href="https://github.com/WW2CHAIJVN/-lanpass-_-/blob/main/docs/QRA.txt">常见问题</a>
+      <a href="https://github.com/WW2CHAIJVN/-lanpass-_-/blob/main/docs/SECURITY.md">安全说明</a>
+      <a href="https://github.com/WW2CHAIJVN/-lanpass-_-/issues">问题反馈</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var els = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window)) {
+    for (var i=0;i<els.length;i++) els[i].classList.add('on');
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting){ e.target.classList.add('on'); io.unobserve(e.target); }
+    });
+  }, {threshold:.12, rootMargin:'0px 0px -40px 0px'});
+  for (var j=0;j<els.length;j++) io.observe(els[j]);
+})();
+</script>
+</body>
+</html>

@@ -46,7 +46,7 @@ EXE 是用 **Windows 自带的 IExpress** 打包的，不需要 Visual Studio、
 ### 方法一：用仓库里的脚本
 
 ```bat
-tools\打包发行版.bat
+tools\build-release.bat
 ```
 
 产物在 `dist\`。
@@ -74,7 +74,7 @@ tools\打包发行版.bat
 ## 发布新版本
 
 ```bat
-tools\打包发行版.bat 1.1.0
+tools\build-release.bat 1.1.0
 ```
 
 生成 `dist\lanpass-v1.1.0.zip` + SHA256。
@@ -82,7 +82,7 @@ tools\打包发行版.bat 1.1.0
 如果需要自动上传到 GitHub Release（需先装 [gh](https://cli.github.com) 并 `gh auth login`）：
 
 ```bat
-tools\发布到GitHub.bat 1.1.0
+tools\publish-release.bat 1.1.0
 ```
 
 ---
@@ -124,8 +124,8 @@ lanpass/
 └── tools/
     ├── build-release.ps1   打包脚本
     ├── publish-release.ps1 发布脚本
-    ├── 打包发行版.bat
-    └── 发布到GitHub.bat
+    ├── build-release.bat
+    └── publish-release.bat
 ```
 
 ---
@@ -140,3 +140,4 @@ lanpass/
 4. 点「刷新学生机」，确认列表能出来
 
 浏览器开发者工具用不上（HTA 不是浏览器环境），出错时会弹 Windows 脚本错误对话框，里面有行号。
+ 

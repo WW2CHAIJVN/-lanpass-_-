@@ -15,13 +15,13 @@
 
 <br><br>
 
-[✨ 特性](#-特性) &nbsp;·&nbsp; [📸 截图](#-截图) &nbsp;·&nbsp; [🚀 快速开始](#-快速开始) &nbsp;·&nbsp; [🧠 原理](#-原理) &nbsp;·&nbsp; [📊 性能](#-性能) &nbsp;·&nbsp; [❓ FAQ](#-faq) &nbsp;·&nbsp; [🛡️ 安全](#️-安全与限制)
+[特性](#特性) &nbsp;·&nbsp; [截图](#截图) &nbsp;·&nbsp; [快速开始](#快速开始) &nbsp;·&nbsp; [原理](#原理) &nbsp;·&nbsp; [性能](#性能) &nbsp;·&nbsp; [FAQ](#faq) &nbsp;·&nbsp; [安全](#安全与限制)
 
 </div>
 
 ---
 
-## 🎯 为什么会有这个项目
+## 为什么会有这个项目
 
 机房里有这样一幕：几十台电脑，同一台交换机，同一个网段，但「网上邻居」里互相看不见。
 
@@ -37,21 +37,21 @@
 
 | 版本 | 家庭组 |
 |------|--------|
-| Windows 7 | ✅ 引入 |
-| Windows 8.1 | ✅ 仍在 |
-| Windows 10 1803 | ❌ **被移除** |
+| Windows 7 | 引入 |
+| Windows 8.1 | 仍然支持 |
+| Windows 10 1803 | **被移除** |
 
 Win7 和 Win10/11 之间没有共同的家庭组机制。
 
 </td>
 <td width="50%" valign="top">
 
-### 深层：SMB 来宾认证被关
+### 深层：SMB 来宾认证被关闭
 
 从 **Windows 10 1709** 起：
 
-| 注册表项 | 默认 |
-|---------|------|
+| 注册表项 | 默认值 |
+|---------|--------|
 | `AllowInsecureGuestAuth` | `0` |
 | `LimitBlankPasswordUse` | `1` |
 
@@ -71,56 +71,42 @@ Win7 和 Win10/11 之间没有共同的家庭组机制。
 
 ---
 
-## ✨ 特性
+## 特性
 
 <table>
 <tr>
-<td align="center" width="25%">
+<td width="25%" valign="top">
 
-### 🪶
-**零依赖**
+### 零依赖
 
-只用系统自带的
-`mshta` / `cmd` / `net` / `ping` / `arp`
+只用系统自带的 `mshta` / `cmd` / `net` / `ping` / `arp`。
 
-不需要 .NET、
-VC++、Java、
-Python、Node
+不需要 .NET、VC++ 运行库、Java、Python、Node。
 
 </td>
-<td align="center" width="25%">
+<td width="25%" valign="top">
 
-### 🕵️
-**不靠网络发现**
+### 不靠网络发现
 
-家庭组、网络发现、
-Computer Browser、
-SSDP、DNS
-全部失效也照用
+家庭组、网络发现、Computer Browser、SSDP、DNS 全部失效也照用。
 
 </td>
-<td align="center" width="25%">
+<td width="25%" valign="top">
 
-### 🔗
-**跨版本互通**
+### 跨版本互通
 
-Win7 ↔ Win10 ↔ Win11
-双向访问
+Win7 / Win10 / Win11 双向访问。
 
-自动修复
-4 项注册表
+自动修复 4 项注册表。
 
 </td>
-<td align="center" width="25%">
+<td width="25%" valign="top">
 
-### 👥
-**双端设计**
+### 双端设计
 
-教师端管理全班
-学生端一键交作业
+教师端管理全班，学生端一键交作业。
 
-一个程序
-两种角色
+一个程序，两种角色。
 
 </td>
 </tr>
@@ -128,19 +114,21 @@ Win7 ↔ Win10 ↔ Win11
 
 ---
 
-## 📸 截图
+## 截图
 
 <table>
 <tr>
 <td width="50%" align="center">
 
 **教师端** · 父级主机
+
 <img src="docs/screenshots/teacher.png" alt="教师端">
 
 </td>
 <td width="50%" align="center">
 
 **学生端** · 子级主机
+
 <img src="docs/screenshots/student.png" alt="学生端">
 
 </td>
@@ -149,10 +137,10 @@ Win7 ↔ Win10 ↔ Win11
 
 ---
 
-## 🚀 快速开始
+## 快速开始
 
 <details open>
-<summary><b>① EXE 版 —— 双击即用</b></summary>
+<summary><b>方式一：EXE 版，双击即用</b></summary>
 
 <br>
 
@@ -165,7 +153,7 @@ Win7 ↔ Win10 ↔ Win11
 </details>
 
 <details>
-<summary><b>② 绿色版 —— 免安装</b></summary>
+<summary><b>方式二：绿色版，免安装</b></summary>
 
 <br>
 
@@ -176,7 +164,7 @@ Win7 ↔ Win10 ↔ Win11
 </details>
 
 <details>
-<summary><b>③ 机房没有 D 盘怎么办</b></summary>
+<summary><b>方式三：机房没有 D 盘怎么办</b></summary>
 
 <br>
 
@@ -191,9 +179,9 @@ Win7 ↔ Win10 ↔ Win11
 
 ---
 
-## 🧠 原理
+## 原理
 
-### 1️⃣ 发现：不碰任何系统服务
+### 1. 发现：不碰任何系统服务
 
 ```text
 ┌─────────────────────────────────────────────┐
@@ -214,9 +202,9 @@ Win7 ↔ Win10 ↔ Win11
 └─────────────────────────────────────────────┘
 ```
 
-> 💡 **关键点**：ping 的目的是**填充 ARP 表**，不是等 ICMP 回应。即使对方防火墙禁 ping，只要在线，ARP 层仍会记录它的 MAC。
+关键点：ping 的目的是**填充 ARP 表**，不是等 ICMP 回应。即使对方防火墙禁 ping，只要在线，ARP 层仍会记录它的 MAC。
 
-### 2️⃣ 互通：四项注册表修复
+### 2. 互通：四项注册表修复
 
 ```text
 AllowInsecureGuestAuth = 1     允许来宾访问
@@ -225,7 +213,7 @@ RestrictNullSessAccess = 0     允许匿名会话访问共享
 net user guest /active:yes     启用 Guest 账户
 ```
 
-### 3️⃣ 角色识别：一个文本文件
+### 3. 角色识别：一个文本文件
 
 每台机器在共享目录写 `.lanshare.ini`：
 
@@ -237,13 +225,13 @@ IP=192.168.5.10
 
 对方读到就知道角色。**纯文件方案**，不需要服务器、数据库或广播协议。
 
-### 4️⃣ 界面：HTA + JScript
+### 4. 界面：HTA + JScript
 
 用 Windows 自带的 `mshta.exe` 渲染 HTA 界面，IE8 引擎兼容模式。全部代码是明文 HTML + JScript，可直接审查。
 
 ---
 
-## 📊 性能
+## 性能
 
 <div align="center">
 
@@ -257,11 +245,11 @@ IP=192.168.5.10
 
 </div>
 
-没有定时器轮询，不后台跑任何东西，启动完成后完全静止。奔跼级别机器可跑。
+没有定时器轮询，不后台跑任何东西，启动完成后完全静止。奔腾级别机器可跑。
 
 ---
 
-## ❓ FAQ
+## FAQ
 
 完整 **27 条**见 [docs/QRA.txt](docs/QRA.txt)。高频问题：
 
@@ -301,22 +289,22 @@ IP=192.168.5.10
 
 ---
 
-## ⚠️ 关于「防装拦截」
+## 关于防装拦截
 
-`blk-guard.bat` 是一个 **可选** 功能，作用是在没有安装 360 / 2345 / 金山毒霸的机器上写入拦截规则。
+`blk-guard.bat` 是一个**可选**功能，作用是在没有安装 360 / 2345 / 金山毒霸的机器上写入拦截规则。
 
 | | |
 |---|---|
 | 触发时机 | 只在点「配置共享」时执行一次，不是常驻 |
-| 检测到 360 | **完全跳过**，不碰它 |
+| 检测到 360 | 完全跳过，不碰它 |
 | 撤销方式 | 运行 `blk-guard-undo.bat` 一键删除 |
 | 不需要它 | 删掉 `blk-guard.bat`，`setup-share.bat` 会自动跳过 |
 
-> ⚠️ **它会显著提高杀软误报率**。写 IFEO 让特定程序无法启动，本身是恶意软件的常见手法，被安全软件重点监控是必然的。用不用自己权衡。
+**它会显著提高杀软误报率**。写 IFEO 让特定程序无法启动，本身是恶意软件的常见手法，被安全软件重点监控是必然的。用不用自己权衡。
 
 ---
 
-## 🛡️ 安全与限制
+## 安全与限制
 
 <details>
 <summary><b>会改哪些注册表、降低多少安全性</b></summary>
@@ -351,11 +339,11 @@ IP=192.168.5.10
 
 | 系统 | 状态 |
 |------|------|
-| Windows 7 SP1 | ✅ 支持（纯系统命令，不依赖 .NET） |
-| Windows 8 / 8.1 | ✅ 支持 |
-| Windows 10 | ✅ 支持（实测） |
-| Windows 11 | ✅ 支持 |
-| 32 / 64 位 | ✅ 都支持 |
+| Windows 7 SP1 | 支持（纯系统命令，不依赖 .NET） |
+| Windows 8 / 8.1 | 支持 |
+| Windows 10 | 支持（实测） |
+| Windows 11 | 支持 |
+| 32 / 64 位 | 都支持 |
 
 > Win7 上未做实机测试，代码按 IE8 引擎 + 纯系统命令编写，理论上兼容。有真实环境测试反馈欢迎提 Issue。
 
@@ -363,7 +351,7 @@ IP=192.168.5.10
 
 ---
 
-## 🕳️ 踩过的坑
+## 踩过的坑
 
 开发过程中实测发现并修掉的问题，留给后来人：
 
@@ -378,10 +366,11 @@ IP=192.168.5.10
 
 ---
 
-## 📄 License
+## License
 
 <div align="center">
 
 **[MIT](LICENSE)** · 随便用，出事不负责
 
 </div>
+

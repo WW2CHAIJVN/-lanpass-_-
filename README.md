@@ -4,6 +4,8 @@
 
 <div align="center">
 
+**简体中文** | [English](README.en.md) | [日本語](README.ja.md) | [한국어](README.ko.md) | [Русский](README.ru.md) | [Español](README.es.md) | [Français](README.fr.md)
+
 **当家庭组消失、网络发现失效、来宾访问被默认关闭时——它仍然能让 Windows 7 / 10 / 11 互相看见。**
 
 <br>
@@ -373,4 +375,4 @@ IP=192.168.5.10
 **[MIT](LICENSE)** · 随便用，出事不负责
 
 </div>
-
+ 
